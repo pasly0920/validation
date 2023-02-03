@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,28 +47,26 @@ public class ValidationItemControllerV2 {
     }
 
     @PostMapping("/add")
-    public String addItem(@ModelAttribute Item item, RedirectAttributes redirectAttributes, Model model) {
-
-        Map<String, String> errors = new HashMap<>();
+    public String addItemV1(@ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
 
         if (!StringUtils.hasText(item.getItemName())) {
-            errors.put("itemName", "상품 이름은 필수입니다.");
+            bindingResult.addError(new FieldError("item", "itemName", "상품 이름은 필수입니다."));
         }
         if(item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000 ) {
-            errors.put("price", "가격은 범위 내에 있어야 합니다");
+            bindingResult.addError(new FieldError("item", "price", "가격은 범위 내에 있어야 합니다"));
+
         }
         if(item.getQuantity() == null || item.getQuantity() >= 9999) {
-            errors.put("quantity", "수량은 범위 내에 있어야 합니다");
+            bindingResult.addError(new FieldError("item", "quantity", "수량은 범위 내에 있어야 합니다"));
         }
         if(item.getPrice() != null && item.getQuantity() != null) {
             int resultPrice = item.getPrice() * item.getQuantity();
             if(resultPrice < 10000) {
-                errors.put("global", "가격,수량의 곱은 10000 이상이어야 합니다");
+                bindingResult.addError(new ObjectError("item", "가격,수량의 곱은 10000 이상이어야 합니다"));
             }
         }
 
-        if(!errors.isEmpty()) {
-            model.addAttribute("errors", errors);
+        if(bindingResult.hasErrors()) {
             return "validation/v2/addForm";
         }
 
