@@ -50,19 +50,19 @@ public class ValidationItemControllerV2 {
     public String addItemV1(@ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
 
         if (!StringUtils.hasText(item.getItemName())) {
-            bindingResult.addError(new FieldError("item", "itemName", "상품 이름은 필수입니다."));
+            bindingResult.rejectValue("itemName", "required");
         }
         if(item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000 ) {
-            bindingResult.addError(new FieldError("item", "price", "가격은 범위 내에 있어야 합니다"));
+            bindingResult.rejectValue("price", "range", new Object[]{1000, 1000000}, null);
 
         }
         if(item.getQuantity() == null || item.getQuantity() >= 9999) {
-            bindingResult.addError(new FieldError("item", "quantity", "수량은 범위 내에 있어야 합니다"));
+            bindingResult.rejectValue("quantity", "max", new Object[]{9999}, null);
         }
         if(item.getPrice() != null && item.getQuantity() != null) {
             int resultPrice = item.getPrice() * item.getQuantity();
             if(resultPrice < 10000) {
-                bindingResult.addError(new ObjectError("item", "가격,수량의 곱은 10000 이상이어야 합니다"));
+                bindingResult.reject("totalPriceMin", new Object[]{1000, resultPrice}, null);
             }
         }
 
